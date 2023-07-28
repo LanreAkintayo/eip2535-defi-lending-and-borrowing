@@ -16,6 +16,7 @@ struct Token {
 
 struct SuppliedToken {
     address tokenAddress;
+    address supplierAddress;
     uint256 amountSupplied;
     uint256 currentInterest;
     bool isCollateral;
