@@ -6,6 +6,8 @@ import "solidity-coverage";
 import "hardhat-deploy"
 import "@nomiclabs/hardhat-ethers"
 import "@nomicfoundation/hardhat-chai-matchers"
+import "hardhat-contract-sizer"
+
 
 const TESTNET_URL = process.env.TESTNET_URL
 const MNEMONIC = process.env.MNEMONIC
@@ -47,7 +49,7 @@ const config: HardhatUserConfig = {
   contractSizer: {
     alphaSort: true,
     disambiguatePaths: false,
-    runOnCompile: false,
+    runOnCompile: true,
     strict: true,
   },
 
