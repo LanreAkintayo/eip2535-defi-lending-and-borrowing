@@ -94,11 +94,11 @@ contract BorrowFacet is ReentrancyGuard {
         }
 
         // It's time to actually borrow.
-        require(IERC20(tokenAddress).transfer(msg.sender, tokenAmount), "Transfer failed");
+        require(IERC20(tokenAddress).transfer(msg.sender, tokenAmount), "   Transfer failed");
 
    }
 
-   function getMaxAvailableToBorrowInUsd(address user) internal view returns(int256){
+   function getMaxAvailableToBorrowInUsd(address user) public view returns(int256){
     uint256 maxLTV = LibAppStorage._maxLTV(user);
     uint256 totalCollateralInUsd = LibAppStorage._getUserTotalCollateralInUsd(user);
     uint256 totalBorrowedInUsd = LibAppStorage._getUserTotalBorrowedInUsd(user);

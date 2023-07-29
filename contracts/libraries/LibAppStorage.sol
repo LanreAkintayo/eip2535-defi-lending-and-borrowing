@@ -10,7 +10,7 @@ struct Token {
     uint8 liquidationThreshold;
     uint8 loanToValue;
     uint8 borrowStableRate;
-    uint8 lendStableRate;
+    uint8 supplyStableRate;
     uint8 liquidationPenalty;
 }
 
@@ -18,9 +18,10 @@ struct SuppliedToken {
     address tokenAddress;
     address supplierAddress;
     uint256 amountSupplied;
-    uint256 currentInterest;
+    uint256 supplyInterest;
+    uint256 supplyStableRate;
+    uint256 startAccumulatingDay;
     bool isCollateral;
-    uint256 startEarningDay;
 }
 
 struct BorrowedToken {

@@ -18,6 +18,7 @@ contract SupplyFacet is ReentrancyGuard {
     error TokenNotSupported();
     error TokenNotFound();
     error AlreadyOn();
+    error AlreadyOff();
     error NotSupplier();
     error CannotSwitchOffCollateral();
 
@@ -43,15 +44,18 @@ contract SupplyFacet is ReentrancyGuard {
         }
 
         SuppliedToken[] memory userTokenSupplied = s.tokensSupplied[msg.sender];
+        Token memory tokenDetails = s.addressToToken[tokenAddress];
+
         if (userTokenSupplied.length == 0) {
             // User has never called this function before.
             SuppliedToken memory suppliedToken;
             suppliedToken.tokenAddress = tokenAddress;
-            suppliedToken.amountSupplied = tokenAmount;
-            suppliedToken.currentInterest = 0;
-            suppliedToken.isCollateral = true;
-            suppliedToken.startEarningDay = 0;
             suppliedToken.supplierAddress = msg.sender;
+            suppliedToken.amountSupplied = tokenAmount;
+            suppliedToken.supplyInterest = 0;
+            suppliedToken.supplyStableRate = tokenDetails.supplyStableRate;
+            suppliedToken.startAccumulatingDay = 0;
+            suppliedToken.isCollateral = true;
 
 
             s.tokensSupplied[msg.sender].push(suppliedToken);
@@ -66,9 +70,10 @@ contract SupplyFacet is ReentrancyGuard {
                 suppliedToken.tokenAddress = tokenAddress;
                 suppliedToken.supplierAddress = msg.sender;
                 suppliedToken.amountSupplied = tokenAmount;
-                suppliedToken.currentInterest = 0;
+                suppliedToken.supplyInterest = 0;
+                suppliedToken.supplyStableRate = tokenDetails.supplyStableRate;
+                suppliedToken.startAccumulatingDay = 0;
                 suppliedToken.isCollateral = true;
-                suppliedToken.startEarningDay = 0;
 
                 s.tokensSupplied[msg.sender].push(suppliedToken);
             } else {
@@ -122,12 +127,17 @@ contract SupplyFacet is ReentrancyGuard {
         }
 
         suppliedToken.isCollateral = true;
+        suppliedToken.supplyInterest = 0;
+        suppliedToken.startAccumulatingDay = 0;
+
 
     }
 
     function swithOffCollateral(address tokenAddress) external {
           // msg.sender must have supplied this token already
         SuppliedToken[] memory suppliedTokens = s.tokensSupplied[msg.sender];
+            Token memory tokenDetails = s.addressToToken[tokenAddress];
+
         
         if (suppliedTokens.length == 0){
             revert TokenNotFound();
@@ -146,8 +156,8 @@ contract SupplyFacet is ReentrancyGuard {
         if(suppliedToken.supplierAddress != msg.sender){
             revert NotSupplier();
         }
-        if (suppliedToken.isCollateral == true){
-            revert AlreadyOn();
+        if (suppliedToken.isCollateral == false){
+            revert AlreadyOff();
         }
 
         // Make sure that switching it off will not affect the borrowed tokens. I still have to convert those 3 values to USD
@@ -163,6 +173,9 @@ contract SupplyFacet is ReentrancyGuard {
 
 
         suppliedToken.isCollateral = false;
+                suppliedToken.supplyInterest =  (tokenDetails.supplyStableRate * suppliedToken.amountSupplied) / 10000;
+                suppliedToken.startAccumulatingDay = block.timestamp;
+            
 
 
 
