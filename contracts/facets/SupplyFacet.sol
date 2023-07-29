@@ -26,7 +26,7 @@ contract SupplyFacet is ReentrancyGuard {
         IERC20 tokenContract = IERC20(tokenAddress);
 
         // You can only supply a token that is supported
-        int index = LibAppStorage.indexOf(tokenAddress, s.supportedTokens);
+        int index = LibAppStorage._indexOf(tokenAddress, s.supportedTokens);
 
         if (index == -1){
             revert TokenNotSupported();
@@ -52,6 +52,7 @@ contract SupplyFacet is ReentrancyGuard {
             suppliedToken.isCollateral = true;
             suppliedToken.startEarningDay = 0;
             suppliedToken.supplierAddress = msg.sender;
+
 
             s.tokensSupplied[msg.sender].push(suppliedToken);
             s.allSuppliers.push(msg.sender);
@@ -79,16 +80,18 @@ contract SupplyFacet is ReentrancyGuard {
             }
         }
 
+        // Contract takes token from your wallet
+        require(tokenContract.transferFrom(msg.sender, address(this), tokenAmount), "Transfer from failed");
+
+
         /////  After supplying, you will get some LAR token minted to you.
-        uint256 tokenAmountInUsd = LibAppStorage.getUsdEquivalent(tokenAmount, tokenAddress);
+        uint256 tokenAmountInUsd = LibAppStorage._getUsdEquivalent(tokenAmount, tokenAddress);
 
         // Assuming that 1 LAR = 1 USD. Send LAR token equivalent to the tokenAmountInUsd. 
         // This will be burnt whenever they withdraw from the token.
         IERC20 larToken = IERC20(s.larTokenAddress);
 
         require(larToken.transfer(msg.sender, tokenAmountInUsd), "Transfer failed");
-
-
 
     }
 
@@ -148,11 +151,11 @@ contract SupplyFacet is ReentrancyGuard {
         }
 
         // Make sure that switching it off will not affect the borrowed tokens. I still have to convert those 3 values to USD
-        uint256 totalAvailableLoanAmountInUsd = getTotalAvailableLoanAmountInUsd(msg.sender);
+        uint256 totalAvailableLoanAmountInUsd = (LibAppStorage._maxLTV(msg.sender) * LibAppStorage._getUserTotalCollateralInUsd(msg.sender)) / 10000;
         uint256 tokenAvailableLoanAmount = getTokenAvailableLoanAmount(msg.sender, tokenAddress);
-        uint256 tokenAvailableLoanAmountInUsd = LibAppStorage.getUsdEquivalent(tokenAvailableLoanAmount, tokenAddress);
+        uint256 tokenAvailableLoanAmountInUsd = LibAppStorage._getUsdEquivalent(tokenAvailableLoanAmount, tokenAddress);
         // uint256 userTotalBorrowed = getTotalBorrowed(msg.sender);
-        uint256 borrowedAmountInUsd = 50e18;
+        uint256 borrowedAmountInUsd = LibAppStorage._getUserTotalBorrowedInUsd(msg.sender);
 
         if ((totalAvailableLoanAmountInUsd - tokenAvailableLoanAmountInUsd) <= borrowedAmountInUsd){
             revert CannotSwitchOffCollateral();
@@ -179,22 +182,6 @@ contract SupplyFacet is ReentrancyGuard {
         return -1;
     }
 
-    function getTotalAvailableLoanAmountInUsd(address user) public view returns(uint256) {
-        SuppliedToken[] memory suppliedTokens = s.tokensSupplied[user];
-        uint totalAvailableInUsd = 0;
-
-        for (uint i = 0; i < suppliedTokens.length; i++){
-            SuppliedToken memory currentSuppliedToken = suppliedTokens[i];
-            Token memory tokenDetails = s.addressToToken[currentSuppliedToken.tokenAddress];
-
-            uint256 availableAmount = (tokenDetails.loanToValue * currentSuppliedToken.amountSupplied) / 100;
-            uint256 inUsd = LibAppStorage.getUsdEquivalent(availableAmount, currentSuppliedToken.tokenAddress);
-
-            totalAvailableInUsd += inUsd;
-
-        }
-        return totalAvailableInUsd;
-    }
     
     function getTokenAvailableLoanAmount(address user, address tokenAddress) public view returns(uint256) {
         SuppliedToken[] memory suppliedTokens = s.tokensSupplied[user];

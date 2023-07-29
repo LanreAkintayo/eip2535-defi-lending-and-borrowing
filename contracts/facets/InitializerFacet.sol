@@ -31,7 +31,7 @@ contract InitializerFacet is ReentrancyGuard {
         for (uint i = 0; i < tokens.length; i++){
             Token memory currentToken = tokens[i];
 
-            int index = LibAppStorage.indexOf(currentToken.tokenAddress, s.supportedTokens);
+            int index = LibAppStorage._indexOf(currentToken.tokenAddress, s.supportedTokens);
             if (index != -1){
                  s.supportedTokens.push(currentToken.tokenAddress);
                 s.addressToToken[currentToken.tokenAddress] = currentToken;

@@ -25,8 +25,12 @@ struct SuppliedToken {
 
 struct BorrowedToken {
     address tokenAddress;
+    address borrowerAddress;
     uint256 amountBorrowed;
-    uint256 currentInterest;
+    uint256 startAccumulatingDay;
+    uint256 borrowedInterest;
+    uint256 stableRate;
+   
 }
 
 
@@ -38,6 +42,7 @@ struct AppStorage {
    mapping(address => address) tokenToPriceFeed;
 
    mapping(address => SuppliedToken[]) tokensSupplied;
+   mapping(address => BorrowedToken[]) tokensBorrowed;
    
 
    address[] allSuppliers;
@@ -55,7 +60,7 @@ library LibAppStorage {
         }
     }
 
-    function indexOf(address targetAddress, address[] memory addressArray) internal pure returns(int256){
+    function _indexOf(address targetAddress, address[] memory addressArray) internal pure returns(int256){
         for (uint256 i = 0; i < addressArray.length; i++){
             if (targetAddress == addressArray[i]){
                 return int256(i);
@@ -64,7 +69,84 @@ library LibAppStorage {
         return -1;
     }
 
-     function getUsdEquivalent(uint256 amount, address tokenAddress)
+    function _getUserTotalCollateralInUsd(address user) internal view returns(uint256){
+        AppStorage storage s = diamondStorage();
+        SuppliedToken[] memory suppliedTokens = s.tokensSupplied[user];
+        uint totalCollateralInUsd = 0;
+
+        for (uint i = 0; i < suppliedTokens.length; i++){
+            SuppliedToken memory currentSuppliedToken = suppliedTokens[i];
+
+            uint256 inUsd = _getUsdEquivalent(currentSuppliedToken.amountSupplied, currentSuppliedToken.tokenAddress);
+
+            totalCollateralInUsd += inUsd;
+
+        }
+        return totalCollateralInUsd;
+    }
+
+    function _getUserTotalBorrowedInUsd(address user) internal view returns(uint256){
+        AppStorage storage s = diamondStorage();
+        BorrowedToken[] memory borrowedTokens = s.tokensBorrowed[user];
+        uint totalBorrowedInUsd = 0;
+
+        for (uint i = 0; i < borrowedTokens.length; i++){
+            BorrowedToken memory currentBorrowedToken = borrowedTokens[i];
+
+            uint256 inUsd = _getUsdEquivalent(currentBorrowedToken.amountBorrowed, currentBorrowedToken.tokenAddress);
+
+            totalBorrowedInUsd += inUsd;
+
+        }
+        return totalBorrowedInUsd;
+
+    }
+
+    function _maxLTV(address user) internal view returns(uint256){
+        AppStorage storage s = diamondStorage();
+        SuppliedToken[] memory suppliedTokens = s.tokensSupplied[user];
+        uint numerator = 0;
+        uint256 userTotalCollateral = _getUserTotalCollateralInUsd(user);
+
+        for (uint i = 0; i < suppliedTokens.length; i++){
+            SuppliedToken memory currentSuppliedToken = suppliedTokens[i];
+            Token memory tokenDetails = s.addressToToken[currentSuppliedToken.tokenAddress];
+
+            uint256 collateralInUsd = _getUsdEquivalent(currentSuppliedToken.amountSupplied, currentSuppliedToken.tokenAddress);
+
+            numerator += (collateralInUsd * tokenDetails.loanToValue);
+
+        }
+        return numerator / userTotalCollateral;
+    }
+
+    function _liquidationThreshold(address user) internal view returns(uint256){
+         AppStorage storage s = diamondStorage();
+        SuppliedToken[] memory suppliedTokens = s.tokensSupplied[user];
+        uint numerator = 0;
+        uint256 userTotalCollateral = _getUserTotalCollateralInUsd(user);
+
+        for (uint i = 0; i < suppliedTokens.length; i++){
+            SuppliedToken memory currentSuppliedToken = suppliedTokens[i];
+            Token memory tokenDetails = s.addressToToken[currentSuppliedToken.tokenAddress];
+
+            uint256 collateralInUsd = _getUsdEquivalent(currentSuppliedToken.amountSupplied, currentSuppliedToken.tokenAddress);
+
+            numerator += (collateralInUsd * tokenDetails.liquidationThreshold);
+
+        }
+        return numerator / userTotalCollateral;
+    }
+
+    function _healthFactor(address user) internal view returns(uint256){
+        uint256 userTotalCollateral = _getUserTotalCollateralInUsd(user);
+        uint256 userLiquidationThreshold = _liquidationThreshold(user);
+        uint256 userTotalBorrowed = _getUserTotalBorrowedInUsd(user);
+        return (userTotalCollateral * userLiquidationThreshold) /  userTotalBorrowed;
+    }
+
+
+     function _getUsdEquivalent(uint256 amount, address tokenAddress)
         internal
         view
         returns (uint256)
@@ -72,14 +154,14 @@ library LibAppStorage {
         (
             uint256 dollarPerToken,
             uint256 decimals
-        ) = oneTokenEqualsHowManyDollars(tokenAddress);
+        ) = _oneTokenEqualsHowManyDollars(tokenAddress);
 
         uint256 totalAmountInDollars = (amount * dollarPerToken) /
             (10**decimals);
         return totalAmountInDollars;
     }
 
-    function oneTokenEqualsHowManyDollars(address tokenAddress)
+    function _oneTokenEqualsHowManyDollars(address tokenAddress)
         internal
         view
         returns (uint256, uint256)
