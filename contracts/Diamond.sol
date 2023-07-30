@@ -9,6 +9,7 @@ pragma solidity 0.8.17;
 /******************************************************************************/
 
 import { LibDiamond } from "./libraries/LibDiamond.sol";
+
 import { IDiamondCut } from "./interfaces/IDiamondCut.sol";
 
 contract Diamond {    
@@ -33,6 +34,7 @@ contract Diamond {
     // function if a facet is found and return any value.
     fallback() external payable {
         LibDiamond.DiamondStorage storage ds;
+        
         bytes32 position = LibDiamond.DIAMOND_STORAGE_POSITION;
         assembly {
             ds.slot := position // This sets the position of the struct in the storage

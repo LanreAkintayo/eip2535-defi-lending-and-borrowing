@@ -8,14 +8,10 @@ import { getContract } from "../utils/helper"
 
 const deployDiamondLoupeFacet:DeployFunction = async function(hre: HardhatRuntimeEnvironment) {
 
-   // @ts-ignore
    const { getNamedAccounts, deployments, network } = hre
    const { deploy, log } = deployments
    const { deployer } = await getNamedAccounts()
 
-  //  const provider = new JsonRpcProvider()
-
-   const deployerSigner = await ethers.getSigner(deployer)
 
    log("\n")
    const diamondLoupeFacet = await deploy("DiamondLoupeFacet", {
@@ -28,12 +24,7 @@ const deployDiamondLoupeFacet:DeployFunction = async function(hre: HardhatRuntim
 
 
   const facetInstance = await ethers.getContract("DiamondLoupeFacet") 
-  const facetInstance1 = await getContract("DiamondLoupeFacet", "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9")
-
-  // console.log("Facet instance 1: ", facetInstance1)
-
-  // console.log("Facet Instance: ", facetInstance)
-
+ 
   const allFragments= facetInstance.interface.fragments
 
   // for (let i = 0; i < allFragments.length; i++){
@@ -64,15 +55,15 @@ const deployDiamondLoupeFacet:DeployFunction = async function(hre: HardhatRuntim
   
   */
 
-  const currentSelector = getSelectors(facetInstance).get(["facetAddress(bytes4)"])
+  const diamondLoupeFunctionSelectors = getSelectors(facetInstance)
   // const currentSelector = getSelectors(facetInstance)
 
-  console.log("Current SElector: ", currentSelector)
+  // console.log("Current SElector: ", currentSelector)
 
   const cut = [{
     facetAddress: diamondLoupeFacet.address,
     action: FacetCutAction.Add,
-    functionSelectors: getSelectors(facetInstance)
+    functionSelectors: diamondLoupeFunctionSelectors
   }]
 
   // Add the Diamond Loupe Facet and at the same time, invoke the init() function inside the DiamontInit contract.
@@ -81,18 +72,18 @@ const deployDiamondLoupeFacet:DeployFunction = async function(hre: HardhatRuntim
 
    const diamondInit = await ethers.getContract('DiamondInit')
    let tx
-   let receipt
+  let receipt
+  
    // call to init function
    let functionCall = diamondInit.interface.encodeFunctionData('init')
  
-   console.log("Function call: ", functionCall)
-
    tx = await diamondCut.diamondCut(cut, diamondInit.target, functionCall)
-   // console.log('Diamond cut tx: ', tx.hash)
-   receipt = await tx.wait()
+  receipt = await tx.wait()
+  
    if (!receipt?.status) {
      throw Error(`Diamond upgrade failed: ${tx.hash}`)
-   }
+  }
+  
    console.log('Completed diamond cut')
 
 

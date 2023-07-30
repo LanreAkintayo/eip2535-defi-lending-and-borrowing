@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../libraries/LibDiamond.sol";
 
 import "hardhat/console.sol";
-import {AppStorage, Token, LibAppStorage} from "../libraries/LibAppStorage.sol";
+import {AppStorage, Token, LibAppStorage, TokenPriceFeed} from "../libraries/LibAppStorage.sol";
 import {LibDiamond} from "../libraries/LibDiamond.sol";
 
 contract InitializerFacet is ReentrancyGuard {
@@ -32,7 +32,7 @@ contract InitializerFacet is ReentrancyGuard {
             Token memory currentToken = tokens[i];
 
             int index = LibAppStorage._indexOf(currentToken.tokenAddress, s.supportedTokens);
-            if (index != -1){
+            if (index == -1){
                  s.supportedTokens.push(currentToken.tokenAddress);
                 s.addressToToken[currentToken.tokenAddress] = currentToken;
             }
@@ -42,13 +42,25 @@ contract InitializerFacet is ReentrancyGuard {
     }
 
 
-    function setTokenPriceFeed(address priceFeed, address token) external onlyOwner {
-        s.tokenToPriceFeed[token] = priceFeed;
+    function setTokenPriceFeed(TokenPriceFeed[] memory tokenPriceFeeds) external onlyOwner {
+        for (uint i = 0; i < tokenPriceFeeds.length; i++){
+            TokenPriceFeed memory currentTokenPriceFeed = tokenPriceFeeds[i];
+            console.log("token address: inside setter ", currentTokenPriceFeed.tokenAddress);
+            console.log("Token pricefeed: ", currentTokenPriceFeed.priceFeed);
+
+        s.tokenToPriceFeed[currentTokenPriceFeed.tokenAddress] = currentTokenPriceFeed.priceFeed;
+
+            console.log("Token pricefeed: ", currentTokenPriceFeed.priceFeed);
+
+
+        }
     }
 
-    function getSupportedTokens() external view returns(address[] memory){
+     function getAllSupportedTokens() external view returns(address[] memory){
         return s.supportedTokens;
     }
+
+   
 
 
 

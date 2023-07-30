@@ -6,6 +6,10 @@ export const toWei =  (value: number):string => {
   return ethers.parseEther(value.toString()).toString()
 };
 
+export const toBigInteger = (value: number): bigint => {
+  return BigInt(toWei(value));
+}
+
 export const fromWei = (amount: BigNumberish): string => {
   return ethers.formatEther(amount)
 };

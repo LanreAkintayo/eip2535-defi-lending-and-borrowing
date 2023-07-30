@@ -13,8 +13,7 @@ export const getSelectors = (contract: any) =>  {
   for (const eachFragment of allFragments){
     if (eachFragment.type == "function"){
       const currentFragmentFunction = contract.getFunction(eachFragment)
-      console.log(currentFragmentFunction._key)
-      signatures.push((contract.getFunction(eachFragment))._key)
+      signatures.push(currentFragmentFunction._key)
     }
   }
 

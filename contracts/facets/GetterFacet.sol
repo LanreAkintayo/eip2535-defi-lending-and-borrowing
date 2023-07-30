@@ -6,55 +6,16 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../libraries/LibDiamond.sol";
 
 import "hardhat/console.sol";
-import {AppStorage, Token, LibAppStorage, BorrowedToken, SuppliedToken} from "../libraries/LibAppStorage.sol";
-import {LibDiamond} from "../libraries/LibDiamond.sol";
+import {AppStorage, SuppliedToken, LibAppStorage, Token, Modifiers} from "../libraries/LibAppStorage.sol";
 
-contract GetterFacet {
-    AppStorage internal s;
-
-    function getHealthFactor(address user) public view returns (uint256) {
-        return LibAppStorage._healthFactor(user);
-    }
-
-    function getMaxLTV(address user) public view returns (uint256) {
-        return LibAppStorage._maxLTV(user);
-    }
-
-    function getLiquidationThreshold(
-        address user
-    ) public view returns (uint256) {
-        return LibAppStorage._liquidationThreshold(user);
-    }
-
-     function getUserTotalCollateralInUsd(
-        address user
-    ) public view returns (uint256) {
-        return LibAppStorage._getUserTotalCollateralInUsd(user);
-    }
-
-    function getUserTotalBorrowed(address user) public view returns (uint256) {
-        return LibAppStorage._getUserTotalBorrowedInUsd(user);
-    }
-
-
-    function getNetworth(address user) public view returns (uint256) {
-        return LibAppStorage._getUserTotalCollateralInUsd(user) - LibAppStorage._getUserTotalBorrowedInUsd(user);
-    }
-
-    function getCurrentLTV(address user) public view returns (uint256) {
-        return (LibAppStorage._getUserTotalBorrowedInUsd(user) * 10000) / (LibAppStorage._getUserTotalCollateralInUsd(user));
-    }
-
+contract GetterFacet is ReentrancyGuard, Modifiers {
    
-    function getAllSupplies(address user) public view returns (SuppliedToken[] memory) {
-        return s.tokensSupplied[user];
+
+    function getData2(address user) public view returns (address) {
+        console.log("User is inside supplyFacet: ",user);
+        console.log("Inside SupplyFAcet: ", s.larTokenAddress);
+        return s.larTokenAddress;
     }
 
-    function getAllBorrows(address user) public view returns (BorrowedToken[] memory) {
-        return s.tokensBorrowed[user];
-    }
-
-    function getBorrowPower(address user) public view returns (uint256) {
-        return (LibAppStorage._getUserTotalBorrowedInUsd(user) * 10000)  / (LibAppStorage._maxLTV(user) * LibAppStorage._getUserTotalCollateralInUsd(user));
-    }
+  
 }

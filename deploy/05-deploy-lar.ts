@@ -14,10 +14,7 @@ const deployLAR: DeployFunction = async function (
   const { deployer } = await getNamedAccounts()
   const chainId: number = network.config.chainId!
 
-  console.log(network.name)
 
-  log("----------------------------------------------------")
-  log("Deploying LAR Token and waiting for confirmations...")
   const larDeployment = await deploy("LAR", {
     from: deployer,
     args: [],
@@ -25,7 +22,10 @@ const deployLAR: DeployFunction = async function (
     // we need to wait if on a live network so we can verify properly
     waitConfirmations: networkConfig[network.name].blockConfirmations || 0,
   })
+
   log(`Lar deployed at ${larDeployment.address}`)
+
+  
 
 
 //   if (
