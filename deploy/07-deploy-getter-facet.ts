@@ -11,13 +11,15 @@ const deployGetterFacet: DeployFunction = async function (
   const { getNamedAccounts, deployments, network } = hre;
   const { deploy, log } = deployments;
   const { deployer } = await getNamedAccounts();
+  const chainId = await network.config.chainId
 
   await deploy("GetterFacet", {
     from: deployer,
     args: [],
     log: true,
     // we need to wait if on a live network so we can verify properly
-    waitConfirmations: networkConfig[network.name].blockConfirmations || 0,
+    waitConfirmations:
+      chainId == 31337 ? 0 : networkConfig[network.name].blockConfirmations,
   });
 
   const getterFacet = await ethers.getContract("GetterFacet");
@@ -49,4 +51,4 @@ const deployGetterFacet: DeployFunction = async function (
 
 export default deployGetterFacet;
 
-deployGetterFacet.tags = ["", "getterFacet"];
+deployGetterFacet.tags = ["all", "getterFacet"];

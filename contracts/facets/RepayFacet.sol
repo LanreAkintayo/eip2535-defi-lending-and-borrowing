@@ -18,7 +18,6 @@ contract RepayFacet is ReentrancyGuard {
     error InsufficientFunds();
     error TokenNotBorrowed();
 
-
     function repay(address tokenAddress, uint256 tokenAmount) external {
         // Token amount has to be greater than zero
         if (tokenAmount <= 0) {
@@ -32,7 +31,6 @@ contract RepayFacet is ReentrancyGuard {
             revert UnsupportedToken();
         }
 
-        
         // Check if the user has already borrowed the token below.
         BorrowedToken[] memory userTokensBorrowed = s.tokensBorrowed[
             msg.sender
@@ -50,23 +48,32 @@ contract RepayFacet is ReentrancyGuard {
                 uint256(tokenIndex)
             ];
 
-            uint256 accumulatedInterest = (borrowedToken.borrowedInterest * (block.timestamp - borrowedToken.startAccumulatingDay)) / (365 days * 86400);
+            uint256 noOfDays = (block.timestamp -
+                borrowedToken.startAccumulatingDay) / 86400;
 
-            uint256 totalToRepay  = tokenAmount + accumulatedInterest;
+            uint256 totalInterest = (borrowedToken.stableRate *
+                borrowedToken.amountBorrowed) / 10000;
+                
+            uint256 accumulatedInterest = (noOfDays * totalInterest) / 365;
 
-           if (IERC20(tokenAddress).balanceOf(address(this)) < totalToRepay ){
+            uint256 totalToRepay = tokenAmount + accumulatedInterest;
+
+            if (IERC20(tokenAddress).balanceOf(address(this)) < totalToRepay) {
                 revert InsufficientFunds();
-           }
- 
-            s.tokensBorrowed[msg.sender][uint(tokenIndex)]
+            }
+
+            s
+            .tokensBorrowed[msg.sender][uint(tokenIndex)]
                 .amountBorrowed -= tokenAmount;
- 
-            s.tokensBorrowed[msg.sender][uint(tokenIndex)]
+
+            s
+            .tokensBorrowed[msg.sender][uint(tokenIndex)]
                 .startAccumulatingDay = block.timestamp;
 
             require(
                 IERC20(tokenAddress).transferFrom(
-                    msg.sender, address(this),
+                    msg.sender,
+                    address(this),
                     totalToRepay
                 ),
                 "Insufficient funds"
@@ -79,26 +86,24 @@ contract RepayFacet is ReentrancyGuard {
         address tokenAddress
     ) public view returns (uint256) {
         // Check if the user has already borrowed the token below.
-        BorrowedToken[] memory userTokensBorrowed = s.tokensBorrowed[
-            user
-        ];
+        BorrowedToken[] memory userTokensBorrowed = s.tokensBorrowed[user];
 
         // User has once supplied
         int tokenIndex = indexOf(tokenAddress, userTokensBorrowed);
 
-         if (tokenIndex == -1) {
+        if (tokenIndex == -1) {
             return 0;
         } else {
-             BorrowedToken memory borrowedToken = s.tokensBorrowed[user][
+            BorrowedToken memory borrowedToken = s.tokensBorrowed[user][
                 uint256(tokenIndex)
             ];
 
-            uint256 noOfDaysElapsed = (block.timestamp - borrowedToken.startAccumulatingDay) / 86400;
-            uint256 accumulatedInterest = (borrowedToken.borrowedInterest * noOfDaysElapsed) / 365 days;
+            uint256 noOfDaysElapsed = (block.timestamp -
+                borrowedToken.startAccumulatingDay) / 86400;
+            uint256 accumulatedInterest = (borrowedToken.borrowedInterest *
+                noOfDaysElapsed) / 365 days;
             return borrowedToken.amountBorrowed + accumulatedInterest;
-
         }
-       
     }
 
     function indexOf(

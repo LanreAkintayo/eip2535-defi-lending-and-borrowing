@@ -13,12 +13,13 @@ const deployDiamondInit:DeployFunction = async function(hre: HardhatRuntimeEnvir
    const chainId: number = network.config.chainId!
 
    const diamondInit = await deploy("DiamondInit", {
-    from: deployer,
-    args: [],
-    log: true,
-    // we need to wait if on a live network so we can verify properly
-    waitConfirmations: networkConfig[network.name].blockConfirmations || 0,
-  })
+     from: deployer,
+     args: [],
+     log: true,
+     // we need to wait if on a live network so we can verify properly
+     waitConfirmations:
+       chainId == 31337 ? 0 : networkConfig[network.name].blockConfirmations,
+   });
 
   console.log('DiamondInit deployed:', diamondInit.address, "\n")
 

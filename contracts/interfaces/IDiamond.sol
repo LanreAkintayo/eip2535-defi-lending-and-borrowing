@@ -10,30 +10,9 @@ interface IDiamond {
 
     function swithOffCollateral(address tokenAddress) external;
 
-    function getTokenAvailableLoanAmount(
-        address user,
-        address tokenAddress
-    ) external view returns (uint256);
+    function borrow(address tokenAddress, uint256 tokenAmount) external;
 
-    function getHealthFactor(address user) external view returns (uint256);
+    function withdraw(address tokenAddress, uint256 tokenAmount) external;
 
-    function getMaxLTV(address user) external view returns (uint256);
-
-    function getLiquidationThreshold(
-        address user
-    ) external view returns (uint256);
-
-    function getUserTotalCollateralInUsd(
-        address user
-    ) external view returns (uint256);
-
-    function getNetworth(address user) external view returns (uint256);
-
-    function getCurrentLTV(address user) external view returns (uint256);
-
-    function getAllSupplies(
-        address user
-    ) external view returns (SuppliedToken[] memory);
-
-    function getAllSuppliers() external view returns(address[] memory) ;
+    function repay(address tokenAddress, uint256 tokenAmount) external;
 }

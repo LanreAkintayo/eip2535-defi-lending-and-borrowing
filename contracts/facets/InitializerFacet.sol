@@ -40,25 +40,25 @@ contract InitializerFacet is ReentrancyGuard {
            
         }
     }
-
+                                                                                                        
 
     function setTokenPriceFeed(TokenPriceFeed[] memory tokenPriceFeeds) external onlyOwner {
         for (uint i = 0; i < tokenPriceFeeds.length; i++){
             TokenPriceFeed memory currentTokenPriceFeed = tokenPriceFeeds[i];
-            console.log("token address: inside setter ", currentTokenPriceFeed.tokenAddress);
-            console.log("Token pricefeed: ", currentTokenPriceFeed.priceFeed);
+            // console.log("token address: inside setter ", currentTokenPriceFeed.tokenAddress);
+            // console.log("Token pricefeed: ", currentTokenPriceFeed.priceFeed);
 
         s.tokenToPriceFeed[currentTokenPriceFeed.tokenAddress] = currentTokenPriceFeed.priceFeed;
 
-            console.log("Token pricefeed: ", currentTokenPriceFeed.priceFeed);
+            // console.log("Token pricefeed: ", currentTokenPriceFeed.priceFeed);
 
 
         }
     }
 
-     function getAllSupportedTokens() external view returns(address[] memory){
-        return s.supportedTokens;
-    }
+    //  function getAllSupportedTokens() external view returns(address[] memory){
+    //     return s.supportedTokens;
+    // }
 
    
 

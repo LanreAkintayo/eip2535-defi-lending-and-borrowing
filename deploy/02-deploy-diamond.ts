@@ -17,12 +17,13 @@ const deployDiamond:DeployFunction = async function(hre: HardhatRuntimeEnvironme
    const args = [deployer, diamondCutFacet.target]
   
    const diamond = await deploy("Diamond", {
-    from: deployer,
-    args,
-    log: true,
-    // we need to wait if on a live network so we can verify properly
-    waitConfirmations: networkConfig[network.name].blockConfirmations || 0,
-  })
+     from: deployer,
+     args,
+     log: true,
+     // we need to wait if on a live network so we can verify properly
+     waitConfirmations:
+       chainId == 31337 ? 0 : networkConfig[network.name].blockConfirmations,
+   });
 
   console.log('Diamond deployed:', diamond.address)
 

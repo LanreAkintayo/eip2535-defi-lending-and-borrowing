@@ -1,11 +1,11 @@
 import { getSelectors, FacetCutAction } from "../utils/diamond";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { networkConfig, developmentChains } from "../helper-hardhat-config";
+import { networkConfig } from "../helper-hardhat-config";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { ZeroAddress } from "ethers";
 
-const deployInitializerFacet: DeployFunction = async function (
+const deployWithdrawFacet: DeployFunction = async function (
   hre: HardhatRuntimeEnvironment
 ) {
   const { getNamedAccounts, deployments, network } = hre;
@@ -13,7 +13,7 @@ const deployInitializerFacet: DeployFunction = async function (
   const { deployer } = await getNamedAccounts();
   const chainId = await network.config.chainId
 
-  await deploy("InitializerFacet", {
+  await deploy("WithdrawFacet", {
     from: deployer,
     args: [],
     log: true,
@@ -22,17 +22,26 @@ const deployInitializerFacet: DeployFunction = async function (
       chainId == 31337 ? 0 : networkConfig[network.name].blockConfirmations,
   });
 
-  const initializerFacet = await ethers.getContract("InitializerFacet");
+  const withdrawFacet = await ethers.getContract("WithdrawFacet");
 
-  console.log("InitializerFacet deployed:", initializerFacet.target, "\n");
+  console.log("WithdrawFacet deployed:", withdrawFacet.target, "\n");
 
-  const initializerFacetFunctionselectors = getSelectors(initializerFacet);
+  /*
+    {address,address,uint256,uint256,uint256,uint256,bool}[]
+}
+    
+    */
+
+//   const withdrawFacetFunctionselectors = getSelectors(withdrawFacet)
+  const withdrawFacetFunctionselectors = getSelectors(withdrawFacet).remove(
+    ["indexOf(address,(address,address,uint256,uint256,uint256,uint256,bool)[])"]
+  );
 
   const cut = [
     {
-      facetAddress: initializerFacet.target,
+      facetAddress: withdrawFacet.target,
       action: FacetCutAction.Add,
-      functionSelectors: initializerFacetFunctionselectors,
+      functionSelectors: withdrawFacetFunctionselectors,
     },
   ];
 
@@ -46,9 +55,9 @@ const deployInitializerFacet: DeployFunction = async function (
   if (!receipt?.status) {
     throw Error(`Diamond upgrade failed: ${tx.hash}`);
   }
-  console.log("InitializerFacet selector has been cut inside the diamond\n");
+  console.log("WithdrawFacet selector has been cut inside the diamond\n");
 };
 
-export default deployInitializerFacet;
+export default deployWithdrawFacet;
 
-deployInitializerFacet.tags = ["all", "initializerFacet"];
+deployWithdrawFacet.tags = ["all", "withdrawFacet", "a"];

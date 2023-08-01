@@ -1,124 +1,125 @@
-// // SPDX-License-Identifier: MIT
-// pragma solidity ^0.8.17;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
 
-// import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-// import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-// import "../libraries/LibDiamond.sol";
+import "../interfaces/IBEP20.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "../libraries/LibDiamond.sol";
 
-// import "hardhat/console.sol";
-// import {AppStorage, Token, LibAppStorage, SuppliedToken} from "../libraries/LibAppStorage.sol";
-// import {LibDiamond} from "../libraries/LibDiamond.sol";
+import "hardhat/console.sol";
+import {AppStorage, Token, LibAppStorage, SuppliedToken, Modifiers} from "../libraries/LibAppStorage.sol";
+import {LibDiamond} from "../libraries/LibDiamond.sol";
 
-// contract WithdrawFacet is ReentrancyGuard {
-//     AppStorage internal s;
-//     error UnsupportedToken();
-//     error NoAmountAvailableToWithdraw();
-//     error CannotWithdrawAmount();
-//     error ShouldBeGreaterThanZero();
-//     error InsufficientFunds();
-//     error TokenNotSupplied();
+contract WithdrawFacet is ReentrancyGuard, Modifiers {
+    error UnsupportedToken();
+    error NoAmountAvailableToWithdraw();
+    error CannotWithdrawAmount();
+    error ShouldBeGreaterThanZero();
+    error InsufficientFunds();
+    error TokenNotSupplied();
 
-//     error OnlyOwnerCanCall();
+    error OnlyOwnerCanCall();
 
-//     function withdraw(address tokenAddress, uint256 tokenAmount) external nonReentrant {
-//          // Token amount has to be greater than zero
-//         if (tokenAmount <= 0){
-//             revert ShouldBeGreaterThanZero();
-//         }
+    function withdraw(address tokenAddress, uint256 tokenAmount) external nonReentrant {
+         // Token amount has to be greater than zero
+        if (tokenAmount <= 0){
+            revert ShouldBeGreaterThanZero();
+        }
 
-//         // token has to be supported
-//         int index = LibAppStorage._indexOf(tokenAddress, s.supportedTokens);
+        // token has to be supported
+        int index = LibAppStorage._indexOf(tokenAddress, s.supportedTokens);
 
-//         if (index == -1){
-//             revert UnsupportedToken();
-//         }
+        if (index == -1){
+            revert UnsupportedToken();
+        }
 
-//         // You must have enough collateral.
-//         int256 maxAvailableToWithdrawInUsd = getMaxAvailableToWithdrawInUsd(msg.sender);
+        // You must have enough collateral.
+        int256 maxAvailableToWithdrawInUsd = getMaxAvailableToWithdrawInUsd(msg.sender);
 
-//         if (maxAvailableToWithdrawInUsd <= 0){
-//             revert NoAmountAvailableToWithdraw();
-//         }
+        // console.log("Maximum available to withdraw: ", uint256(maxAvailableToWithdrawInUsd));
 
-//         uint256 availableToWithdrawInUsd = uint256(maxAvailableToWithdrawInUsd);
-//         uint256 tokenAmountInUsd = LibAppStorage._getUsdEquivalent(s, tokenAmount, tokenAddress);
+        if (maxAvailableToWithdrawInUsd <= 0){
+            revert NoAmountAvailableToWithdraw();
+        }
 
-//           if ((availableToWithdrawInUsd - tokenAmountInUsd) < 0){
-//             revert CannotWithdrawAmount();
-//         }
+        uint256 availableToWithdrawInUsd = uint256(maxAvailableToWithdrawInUsd);
+        int256 tokenAmountInUsd = int256(LibAppStorage._getUsdEquivalent(s, tokenAmount, tokenAddress));
+
+          if ((maxAvailableToWithdrawInUsd - tokenAmountInUsd) < 0){
+            revert CannotWithdrawAmount();
+        }
         
-//         // Make sure we have more than enough of the token in the smart contract.
-//         if (IERC20(tokenAddress).balanceOf(address(this)) < tokenAmount){
-//             revert InsufficientFunds();
-//         }
+        // Make sure we have more than enough of the token in the smart contract.
+        if (IBEP20(tokenAddress).balanceOf(address(this)) < tokenAmount){
+            revert InsufficientFunds();
+        }
 
-//          // Check if the user has already borrowed the token below.
-//         SuppliedToken[] memory userTokensSupplied = s.tokensSupplied[msg.sender];
+         // Check if the user has already borrowed the token below.
+        SuppliedToken[] memory userTokensSupplied = s.tokensSupplied[msg.sender];
          
-//             // User has once supplied
-//             int tokenIndex = indexOf(tokenAddress, userTokensSupplied);
+            // User has once supplied
+            int tokenIndex = indexOf(tokenAddress, userTokensSupplied);
 
-//             if (tokenIndex == -1) {
-//               revert TokenNotSupplied();
+            if (tokenIndex == -1) {
+              revert TokenNotSupplied();
 
-//             } else {
-//                 // Update the value of the token in the contract.
+            } else {
+                // Update the value of the token in the contract.
                
 
-//                 SuppliedToken memory suppliedToken = s.tokensSupplied[msg.sender][uint256(tokenIndex)];
-//                 uint totalWithdrawalAmount = tokenAmount;
+                SuppliedToken memory suppliedToken = s.tokensSupplied[msg.sender][uint256(tokenIndex)];
+                uint totalWithdrawalAmount = tokenAmount;
+                uint256 larTokenToBurn = LibAppStorage._getUsdEquivalent(s, tokenAmount, tokenAddress);
 
              
-//                 // If it is not used as collateral, send interest to the user. Otherwise, do not send
-//                 if (!suppliedToken.isCollateral){
-//                     uint256 noOfDays = (block.timestamp - suppliedToken.startAccumulatingDay) / 86400;
-//                     uint256 totalInterest = (suppliedToken.supplyStableRate * suppliedToken.amountSupplied) / 10000;
-//                     uint256 accumulatedInterest = (noOfDays * totalInterest) / 365 days;
+                // If it is not used as collateral, send interest to the user. Otherwise, do not send
+                if (!suppliedToken.isCollateral){
+                    uint256 noOfDays = (block.timestamp - suppliedToken.startAccumulatingDay) / 86400;
+                    uint256 totalInterest = (suppliedToken.supplyStableRate * suppliedToken.amountSupplied) / 10000;
+                    uint256 accumulatedInterest = (noOfDays * totalInterest) / 365;
 
-//                     totalWithdrawalAmount += accumulatedInterest;
+                    totalWithdrawalAmount += accumulatedInterest;
 
-//                 }
+                }
 
-//                  s.tokensSupplied[
-//                     msg.sender
-//                 ][uint(tokenIndex)].amountSupplied -= tokenAmount;
+                 s.tokensSupplied[
+                    msg.sender
+                ][uint(tokenIndex)].amountSupplied -= tokenAmount;
 
-//                  s.tokensSupplied[
-//                     msg.sender
-//                 ][uint(tokenIndex)].startAccumulatingDay = block.timestamp;
+                 s.tokensSupplied[
+                    msg.sender
+                ][uint(tokenIndex)].startAccumulatingDay = block.timestamp;
 
-//                   require(IERC20(tokenAddress).transfer(msg.sender, totalWithdrawalAmount), "Insufficient funds");
+                  require(IBEP20(tokenAddress).transfer(msg.sender, totalWithdrawalAmount), "Insufficient funds");
+                  require(IBEP20(s.larTokenAddress).burn(msg.sender, larTokenToBurn), "Failed to burn");
 
-//             }
+
+
+            }
         
-//     }   
+    }   
 
-//      function getMaxAvailableToWithdrawInUsd(address user) public view returns(int256){
-//         uint256 maxLTV = LibAppStorage._maxLTV(user);
-//         uint256 totalCollateralInUsd = LibAppStorage._getUserTotalCollateralInUsd(user);
-//         uint256 totalBorrowedInUsd = LibAppStorage._getUserTotalBorrowedInUsd(user);
+     function getMaxAvailableToWithdrawInUsd(address user) public view returns(int256){
+        uint256 maxLTV = LibAppStorage._maxLTV(s, user);
+        uint256 totalCollateralInUsd = LibAppStorage._getUserTotalCollateralInUsd(s, user);
+        uint256 totalBorrowedInUsd = LibAppStorage._getUserTotalBorrowedInUsd(s, user);
 
-//         return int256((9900 * (totalCollateralInUsd - (totalBorrowedInUsd * 10000 ) / maxLTV)) / 10000);
-//    }
+        return int256(totalCollateralInUsd - (totalBorrowedInUsd * 10000 ) / maxLTV);
+   }
 
-//     function indexOf(
-//         address tokenAddress,
-//         SuppliedToken[] memory tokenArray
-//     ) public pure returns (int256) {
-//         for (uint i = 0; i < tokenArray.length; i++) {
-//             SuppliedToken memory currentSuppliedToken = tokenArray[i];
-//             if (currentSuppliedToken.tokenAddress == tokenAddress) {
-//                 return int256(i);
-//             }
-//         }
+    function indexOf(
+        address tokenAddress,
+        SuppliedToken[] memory tokenArray
+    ) public pure returns (int256) {
+        for (uint i = 0; i < tokenArray.length; i++) {
+            SuppliedToken memory currentSuppliedToken = tokenArray[i];
+            if (currentSuppliedToken.tokenAddress == tokenAddress) {
+                return int256(i);
+            }
+        }
 
-//         return -1;
-//     }
-
-
+        return -1;
+    }
 
 
 
-
- 
-// }
+}

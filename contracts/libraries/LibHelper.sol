@@ -110,12 +110,6 @@ library LibHelper{
         return totalAmountInDollars;
     }
 
-      function _testing()
-        internal
-    {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        console.log("Length of the supported tokens: ", s.supportedTokens.length);
-    }
 
     function _oneTokenEqualsHowManyDollars(address tokenAddress)
         internal

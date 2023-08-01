@@ -18,10 +18,11 @@ export const getSelectors = (contract: any) =>  {
   }
 
   // const sig  natures = Object.keys(contract.interface.fragments)
-  const selectors:any = signatures.reduce((acc: string[], val: string) => {
+  const selectors: any = signatures.reduce((acc: string[], val: string) => {
     if (val !== 'init(bytes)') {
       const sigHash = contract.interface.getFunction(val).selector
-      acc.push(sigHash)
+      
+        acc.push(sigHash);
     }
     return acc
   }, [])
@@ -39,7 +40,12 @@ export function remove (functionNames: string[]) {
   const self = this
   const selectors = self.filter((v:string) => {
     for (const functionName of functionNames) {
-      if (v === self.contract.interface.getFunction(functionName).selector) {
+      const currentFunction =
+        self.contract.interface.getFunction(functionName);
+      
+      const currentSelector = currentFunction.selector;
+
+      if (v === currentSelector) {
         return false
       }
     }

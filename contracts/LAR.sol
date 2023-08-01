@@ -8,9 +8,13 @@ contract LAR is ERC20 {
         _mint(msg.sender, 100_000_000 * 10**18);
     }
 
-    function burn(address account, uint256 amount) external {
+    function burn(address account, uint256 amount) external returns(bool) {
         _burn(account, amount);
+
+        return true;
     }
+
+
 
 
 }

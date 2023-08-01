@@ -7,14 +7,15 @@ const deployDiamondCutFacet:DeployFunction = async function(hre: HardhatRuntimeE
 
    const { getNamedAccounts, deployments, network } = hre
    const { deploy, log } = deployments
-   const { deployer } = await getNamedAccounts()
+  const { deployer } = await getNamedAccounts()
+  const chainId = network.config.chainId
   
    const diamondCutFacet = await deploy("DiamondCutFacet", {
     from: deployer,
     args: [],
     log: true,
     // we need to wait if on a live network so we can verify properly
-    waitConfirmations: networkConfig[network.name].blockConfirmations || 0,
+    waitConfirmations: chainId == 31337 ? 0 : networkConfig[network.name].blockConfirmations,
   })
 
   log('DiamondCutFacet deployed:', diamondCutFacet.address)

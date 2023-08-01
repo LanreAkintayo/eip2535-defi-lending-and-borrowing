@@ -10,17 +10,19 @@ const deployDiamondLoupeFacet:DeployFunction = async function(hre: HardhatRuntim
 
    const { getNamedAccounts, deployments, network } = hre
    const { deploy, log } = deployments
-   const { deployer } = await getNamedAccounts()
+  const { deployer } = await getNamedAccounts()
+  const chainId = await network.config.chainId;
 
 
    log("\n")
    const diamondLoupeFacet = await deploy("DiamondLoupeFacet", {
-    from: deployer,
-    args: [],
-    log: true,
-    // we need to wait if on a live network so we can verify properly
-    waitConfirmations: networkConfig[network.name].blockConfirmations || 0,
-  })
+     from: deployer,
+     args: [],
+     log: true,
+     // we need to wait if on a live network so we can verify properly
+     waitConfirmations:
+       chainId == 31337 ? 0 : networkConfig[network.name].blockConfirmations,
+   });
 
 
   const facetInstance = await ethers.getContract("DiamondLoupeFacet") 

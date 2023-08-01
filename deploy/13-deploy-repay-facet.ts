@@ -1,19 +1,19 @@
 import { getSelectors, FacetCutAction } from "../utils/diamond";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { networkConfig, developmentChains } from "../helper-hardhat-config";
+import { networkConfig } from "../helper-hardhat-config";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { ZeroAddress } from "ethers";
 
-const deployInitializerFacet: DeployFunction = async function (
+const deployRepayFacet: DeployFunction = async function (
   hre: HardhatRuntimeEnvironment
 ) {
   const { getNamedAccounts, deployments, network } = hre;
   const { deploy, log } = deployments;
   const { deployer } = await getNamedAccounts();
-  const chainId = await network.config.chainId
+  const chainId = await network.config.chainId;
 
-  await deploy("InitializerFacet", {
+  await deploy("RepayFacet", {
     from: deployer,
     args: [],
     log: true,
@@ -22,17 +22,20 @@ const deployInitializerFacet: DeployFunction = async function (
       chainId == 31337 ? 0 : networkConfig[network.name].blockConfirmations,
   });
 
-  const initializerFacet = await ethers.getContract("InitializerFacet");
+  const repayFacet = await ethers.getContract("RepayFacet");
 
-  console.log("InitializerFacet deployed:", initializerFacet.target, "\n");
+  console.log("RepayFacet deployed:", repayFacet.target, "\n");
 
-  const initializerFacetFunctionselectors = getSelectors(initializerFacet);
+  //   const repayFacetFunctionselectors = getSelectors(repayFacet)
+  const repayFacetFunctionselectors = getSelectors(repayFacet).remove([
+    "indexOf(address,(address,address,uint256,uint256,uint256,uint256)[])",
+  ]);
 
   const cut = [
     {
-      facetAddress: initializerFacet.target,
+      facetAddress: repayFacet.target,
       action: FacetCutAction.Add,
-      functionSelectors: initializerFacetFunctionselectors,
+      functionSelectors: repayFacetFunctionselectors,
     },
   ];
 
@@ -46,9 +49,9 @@ const deployInitializerFacet: DeployFunction = async function (
   if (!receipt?.status) {
     throw Error(`Diamond upgrade failed: ${tx.hash}`);
   }
-  console.log("InitializerFacet selector has been cut inside the diamond\n");
+  console.log("RepayFacet selector has been cut inside the diamond\n");
 };
 
-export default deployInitializerFacet;
+export default deployRepayFacet;
 
-deployInitializerFacet.tags = ["all", "initializerFacet"];
+deployRepayFacet.tags = ["all", "repayFacet", "a"];

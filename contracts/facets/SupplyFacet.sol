@@ -185,9 +185,18 @@ contract SupplyFacet is ReentrancyGuard, Modifiers {
             msg.sender
         );
 
+        // console.log("\n\n\n");
+
+        // console.logInt(int256(totalAvailableLoanAmountInUsd));
+        // console.logInt(int256(tokenAvailableLoanAmountInUsd));
+        // console.logInt(int(borrowedAmountInUsd));
+
+        // console.log("\n\n\n");
+
+
         if (
-            (totalAvailableLoanAmountInUsd - tokenAvailableLoanAmountInUsd) <=
-            borrowedAmountInUsd
+            (int256(totalAvailableLoanAmountInUsd) - int256(tokenAvailableLoanAmountInUsd)) <
+            int(borrowedAmountInUsd)
         ) {
             revert CannotSwitchOffCollateral();
         }
@@ -229,48 +238,9 @@ contract SupplyFacet is ReentrancyGuard, Modifiers {
         ];
 
         uint256 availableAmount = (tokenDetails.loanToValue *
-            suppliedToken.amountSupplied) / 100;
+            suppliedToken.amountSupplied) / 10000;
 
         return availableAmount;
     }
-
-       function getHealthFactor(address user) public view returns (uint256) {
-        return LibAppStorage._healthFactor(s, user);
-    }
-
-    function getMaxLTV(address user) public view returns (uint256) {
-        return LibAppStorage._maxLTV(s, user);
-    }
-
-    function getLiquidationThreshold(
-        address user
-    ) public view returns (uint256) {
-        return LibAppStorage._liquidationThreshold(s, user);
-    }
-
-     function getUserTotalCollateralInUsd(
-        address user
-    ) public view returns (uint256) {
-        return LibAppStorage._getUserTotalCollateralInUsd(s, user);
-    }
-
-    function getNetworth(address user) public view returns (uint256) {
-        return LibAppStorage._getUserTotalCollateralInUsd(s, user) - LibAppStorage._getUserTotalBorrowedInUsd(s, user);
-    }
-
-    function getCurrentLTV(address user) public view returns (uint256) {
-        return (LibAppStorage._getUserTotalBorrowedInUsd(s, user) * 10000) / (LibAppStorage._getUserTotalCollateralInUsd(s, user));
-    }
-
-   
-    function getAllSupplies(address user) public view returns (SuppliedToken[] memory) {
-
-        return s.tokensSupplied[user];
-    }
-
-    function getAllSuppliers() public view returns(address[] memory) {
-        return s.allSuppliers;
-    }
-
 
 }

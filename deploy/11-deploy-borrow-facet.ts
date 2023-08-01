@@ -1,11 +1,11 @@
 import { getSelectors, FacetCutAction } from "../utils/diamond";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { networkConfig, developmentChains } from "../helper-hardhat-config";
+import { networkConfig } from "../helper-hardhat-config";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { ZeroAddress } from "ethers";
 
-const deployInitializerFacet: DeployFunction = async function (
+const deployBorrowFacet: DeployFunction = async function (
   hre: HardhatRuntimeEnvironment
 ) {
   const { getNamedAccounts, deployments, network } = hre;
@@ -13,7 +13,7 @@ const deployInitializerFacet: DeployFunction = async function (
   const { deployer } = await getNamedAccounts();
   const chainId = await network.config.chainId
 
-  await deploy("InitializerFacet", {
+  await deploy("BorrowFacet", {
     from: deployer,
     args: [],
     log: true,
@@ -22,17 +22,17 @@ const deployInitializerFacet: DeployFunction = async function (
       chainId == 31337 ? 0 : networkConfig[network.name].blockConfirmations,
   });
 
-  const initializerFacet = await ethers.getContract("InitializerFacet");
+  const borrowFacet = await ethers.getContract("BorrowFacet");
 
-  console.log("InitializerFacet deployed:", initializerFacet.target, "\n");
+  console.log("BorrowFacet deployed:", borrowFacet.target, "\n");
 
-  const initializerFacetFunctionselectors = getSelectors(initializerFacet);
+  const borrowFacetFunctionselectors = getSelectors(borrowFacet);
 
   const cut = [
     {
-      facetAddress: initializerFacet.target,
+      facetAddress: borrowFacet.target,
       action: FacetCutAction.Add,
-      functionSelectors: initializerFacetFunctionselectors,
+      functionSelectors: borrowFacetFunctionselectors,
     },
   ];
 
@@ -46,9 +46,9 @@ const deployInitializerFacet: DeployFunction = async function (
   if (!receipt?.status) {
     throw Error(`Diamond upgrade failed: ${tx.hash}`);
   }
-  console.log("InitializerFacet selector has been cut inside the diamond\n");
+  console.log("BorrowFacet selector has been cut inside the diamond\n");
 };
 
-export default deployInitializerFacet;
+export default deployBorrowFacet;
 
-deployInitializerFacet.tags = ["all", "initializerFacet"];
+deployBorrowFacet.tags = ["all", "borrowFacet", "a"];

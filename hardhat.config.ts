@@ -62,7 +62,7 @@ const config: HardhatUserConfig = {
     customChains: [
       {
         network: "mumbai",
-        chainId: 8001,
+        chainId: 80001,
         urls: {
           apiURL: "https://api-testnet.polygonscan.com/api",
           browserURL: "https://mumbai.polygonscan.com/"
