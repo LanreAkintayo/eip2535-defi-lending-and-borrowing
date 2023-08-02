@@ -11,7 +11,7 @@ export interface networkConfigItem {
   link: AddressLike;
   wMatic: AddressLike;
   usdc: AddressLike;
-  jeur: AddressLike;
+    jeur: AddressLike;
 }
 
 export interface networkConfigInfo {
@@ -29,11 +29,11 @@ export const networkConfig: networkConfigInfo = {
     maticUsd: "0xd0D5e3DB44DE05E9F294BB0a3bEEaF030DE24Ada",
     usdcUsd: "0x572dDec9087154dC5dfBB1546Bb62713147e0Ab0",
     jeurUsd: "0x7d7356bF6Ee5CDeC22B216581E48eCC700D0497A",
-    dai: "0xF14f9596430931E177469715c591513308244e8F",
-    link: "0x4e2f1E0dC4EAD962d3c3014e582d974b3cedF743",
-    wMatic: "0xf237dE5664D3c2D2545684E76fef02A3A58A364c",
-    usdc: "0xe9DcE89B076BA6107Bb64EF30678efec11939234",
-    jeur: "0x6bF2BC4BD4277737bd50cF377851eCF81B62e320",
+    dai: "0xF14f9596430931E177469715c591513308244e8F",  // 18
+    link: "0x4e2f1E0dC4EAD962d3c3014e582d974b3cedF743", // 18
+    wMatic: "0xf237dE5664D3c2D2545684E76fef02A3A58A364c", // 18
+    usdc: "0xe9DcE89B076BA6107Bb64EF30678efec11939234", // 6
+    jeur: "0x6bF2BC4BD4277737bd50cF377851eCF81B62e320", //18
   },
 };
 

@@ -53,7 +53,7 @@ contract RepayFacet is ReentrancyGuard {
 
             uint256 totalInterest = (borrowedToken.stableRate *
                 borrowedToken.amountBorrowed) / 10000;
-                
+
             uint256 accumulatedInterest = (noOfDays * totalInterest) / 365;
 
             uint256 totalToRepay = tokenAmount + accumulatedInterest;
@@ -81,10 +81,10 @@ contract RepayFacet is ReentrancyGuard {
         }
     }
 
-    function getTokenMaxAvailableToRepayInUsd(
+    function getTokenMaxAvailableToRepay(
         address user,
         address tokenAddress
-    ) public view returns (uint256) {
+    ) public view returns (uint256 totalToRepay) {
         // Check if the user has already borrowed the token below.
         BorrowedToken[] memory userTokensBorrowed = s.tokensBorrowed[user];
 
@@ -92,17 +92,21 @@ contract RepayFacet is ReentrancyGuard {
         int tokenIndex = indexOf(tokenAddress, userTokensBorrowed);
 
         if (tokenIndex == -1) {
-            return 0;
+            totalToRepay = 0;
         } else {
             BorrowedToken memory borrowedToken = s.tokensBorrowed[user][
                 uint256(tokenIndex)
             ];
 
-            uint256 noOfDaysElapsed = (block.timestamp -
+            uint256 noOfDays = (block.timestamp -
                 borrowedToken.startAccumulatingDay) / 86400;
-            uint256 accumulatedInterest = (borrowedToken.borrowedInterest *
-                noOfDaysElapsed) / 365 days;
-            return borrowedToken.amountBorrowed + accumulatedInterest;
+
+            uint256 totalInterest = (borrowedToken.stableRate *
+                borrowedToken.amountBorrowed) / 10000;
+
+            uint256 accumulatedInterest = (noOfDays * totalInterest) / 365;
+
+            totalToRepay = borrowedToken.amountBorrowed + accumulatedInterest;
         }
     }
 

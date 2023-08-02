@@ -1,9 +1,9 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 import {Counters} from "@openzeppelin/contracts/utils/Counters.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "hardhat/console.sol";
+import "../interfaces/IERC20.sol";
 
 struct Token {
     address tokenAddress;
@@ -79,6 +79,8 @@ library LibAppStorage {
 
         for (uint i = 0; i < suppliedTokens.length; i++) {
             SuppliedToken memory currentSuppliedToken = suppliedTokens[i];
+            uint8 decimals = IERC20(currentSuppliedToken.tokenAddress)
+                .decimals();
 
             uint256 inUsd = _getUsdEquivalent(
                 s,
@@ -86,7 +88,9 @@ library LibAppStorage {
                 currentSuppliedToken.tokenAddress
             );
 
-            totalCollateralInUsd += inUsd;
+            uint256 scaledUsdAmount = (inUsd * 10 ** 18) / 10 ** decimals;
+
+            totalCollateralInUsd += scaledUsdAmount;
         }
         return totalCollateralInUsd;
     }
@@ -101,6 +105,8 @@ library LibAppStorage {
 
         for (uint i = 0; i < borrowedTokens.length; i++) {
             BorrowedToken memory currentBorrowedToken = borrowedTokens[i];
+            uint8 decimals = IERC20(currentBorrowedToken.tokenAddress)
+                .decimals();
 
             uint256 inUsd = _getUsdEquivalent(
                 s,
@@ -108,7 +114,9 @@ library LibAppStorage {
                 currentBorrowedToken.tokenAddress
             );
 
-            totalBorrowedInUsd += inUsd;
+            uint256 scaledUsdAmount = (inUsd * 10 ** 18) / 10 ** decimals;
+
+            totalBorrowedInUsd += scaledUsdAmount;
         }
         return totalBorrowedInUsd;
     }
@@ -150,13 +158,19 @@ library LibAppStorage {
                 currentSuppliedToken.tokenAddress
             ];
 
+            uint8 decimals = IERC20(currentSuppliedToken.tokenAddress)
+                .decimals();
+
             uint256 collateralInUsd = _getUsdEquivalent(
                 s,
                 currentSuppliedToken.amountSupplied,
                 currentSuppliedToken.tokenAddress
             );
 
-            numerator += (collateralInUsd * tokenDetails.loanToValue);
+            uint256 scaledUsdAmount = (collateralInUsd * 10 ** 18) /
+                10 ** decimals;
+
+            numerator += (scaledUsdAmount * tokenDetails.loanToValue);
         }
         return numerator / userTotalCollateral;
     }
@@ -176,13 +190,20 @@ library LibAppStorage {
                 currentSuppliedToken.tokenAddress
             ];
 
+            uint8 decimals = IERC20(currentSuppliedToken.tokenAddress)
+                .decimals();
+
             uint256 collateralInUsd = _getUsdEquivalent(
                 s,
                 currentSuppliedToken.amountSupplied,
                 currentSuppliedToken.tokenAddress
             );
 
-            numerator += (collateralInUsd * tokenDetails.liquidationThreshold);
+             uint256 scaledUsdAmount = (collateralInUsd * 10 ** 18) /
+                10 ** decimals;
+                
+
+            numerator += (scaledUsdAmount * tokenDetails.liquidationThreshold);
         }
         return numerator / userTotalCollateral;
     }

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import "../interfaces/IBEP20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../libraries/LibDiamond.sol";
+import "../interfaces/IERC20.sol";
 
 import "hardhat/console.sol";
 import {AppStorage, Token, LibAppStorage, SuppliedToken, Modifiers} from "../libraries/LibAppStorage.sol";
@@ -41,15 +41,17 @@ contract WithdrawFacet is ReentrancyGuard, Modifiers {
             revert NoAmountAvailableToWithdraw();
         }
 
-        uint256 availableToWithdrawInUsd = uint256(maxAvailableToWithdrawInUsd);
-        int256 tokenAmountInUsd = int256(LibAppStorage._getUsdEquivalent(s, tokenAmount, tokenAddress));
+        uint256 tokenAmountInUsd = LibAppStorage._getUsdEquivalent(s, tokenAmount, tokenAddress);
+        uint8 decimals = IERC20(tokenAddress).decimals();
+        uint256 scaledTokenAmountInUsd = (tokenAmountInUsd * 10**18) / 10**decimals;
 
-          if ((maxAvailableToWithdrawInUsd - tokenAmountInUsd) < 0){
+
+          if ((maxAvailableToWithdrawInUsd - int256(scaledTokenAmountInUsd)) < 0){
             revert CannotWithdrawAmount();
         }
         
         // Make sure we have more than enough of the token in the smart contract.
-        if (IBEP20(tokenAddress).balanceOf(address(this)) < tokenAmount){
+        if (IERC20(tokenAddress).balanceOf(address(this)) < tokenAmount){
             revert InsufficientFunds();
         }
 
@@ -68,7 +70,7 @@ contract WithdrawFacet is ReentrancyGuard, Modifiers {
 
                 SuppliedToken memory suppliedToken = s.tokensSupplied[msg.sender][uint256(tokenIndex)];
                 uint totalWithdrawalAmount = tokenAmount;
-                uint256 larTokenToBurn = LibAppStorage._getUsdEquivalent(s, tokenAmount, tokenAddress);
+                uint256 larTokenToBurn = LibAppStorage._getUsdEquivalent(s, scaledTokenAmountInUsd, tokenAddress);
 
              
                 // If it is not used as collateral, send interest to the user. Otherwise, do not send
@@ -89,8 +91,8 @@ contract WithdrawFacet is ReentrancyGuard, Modifiers {
                     msg.sender
                 ][uint(tokenIndex)].startAccumulatingDay = block.timestamp;
 
-                  require(IBEP20(tokenAddress).transfer(msg.sender, totalWithdrawalAmount), "Insufficient funds");
-                  require(IBEP20(s.larTokenAddress).burn(msg.sender, larTokenToBurn), "Failed to burn");
+                  require(IERC20(tokenAddress).transfer(msg.sender, totalWithdrawalAmount), "Insufficient funds");
+                  require(IERC20(s.larTokenAddress).burn(msg.sender, larTokenToBurn), "Failed to burn");
 
 
 

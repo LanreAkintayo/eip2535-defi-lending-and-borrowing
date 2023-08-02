@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "../interfaces/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../libraries/LibDiamond.sol";
 
@@ -40,17 +40,23 @@ contract BorrowFacet is ReentrancyGuard, Modifiers {
             revert NoAmountAvailableToBorrow();
         }
 
-        uint256 availableToBorrowInUsd = uint256(maxAvailableToBorrowInUsd);
-        int256 tokenAmountInUsd = int256(
-            LibAppStorage._getUsdEquivalent(s, tokenAmount, tokenAddress)
+        uint256 tokenAmountInUsd = LibAppStorage._getUsdEquivalent(
+            s,
+            tokenAmount,
+            tokenAddress
         );
+
+        uint8 decimals = IERC20(tokenAddress).decimals();
+
+        uint256 scaledTokenAmountInUsd = (tokenAmountInUsd * 10 ** 18) /
+            10 ** decimals;
 
         // console.log("Token amount in Usd: ", uint(tokenAmountInUsd));
         // console.log("Available to borrow in Usd: ", availableToBorrowInUsd);
 
         // console.logInt(int256(maxAvailableToBorrowInUsd - tokenAmountInUsd));
 
-        if (int256(maxAvailableToBorrowInUsd - tokenAmountInUsd) < 0) {
+        if (maxAvailableToBorrowInUsd - int256(scaledTokenAmountInUsd) < 0) {
             revert CannotBorrowAmount();
         }
 

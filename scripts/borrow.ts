@@ -2,23 +2,18 @@ import { ethers, getNamedAccounts, network } from "hardhat";
 import { toWei } from "../utils/helper";
 import { networkConfig } from "../helper-hardhat-config";
 import { Diamond, GetterFacet, IBEP20, IDiamond } from "../typechain-types";
-import { IERC20 } from "../typechain-types/contracts/interfaces";
 
 async function main() {
   let tx;
 
-  const tokenAddress = networkConfig[network.name].dai as string;
+  const tokenAmount = 2e6
+  const tokenAddress = networkConfig[network.name].usdc as string;
   const { deployer } = await getNamedAccounts();
 
   const tokenContract: IBEP20 = await ethers.getContractAt(
     "IBEP20",
     tokenAddress
   );
-
-  const decimals = await tokenContract.decimals()
-  const tokenAmount = 50n * 10n**decimals;
-
-
   const diamond = await ethers.getContract("Diamond");
   const diamondContract: IDiamond = await ethers.getContractAt(
     "IDiamond",
@@ -32,25 +27,18 @@ async function main() {
   console.log("Diamond.target: ", diamond.target);
   console.log("Deployer: ", deployer);
 
-  tx = await tokenContract.approve(diamondContract.target, tokenAmount);
-  await tx.wait(1);
+  console.log("Borrowing Token")
 
-  console.log("Supplying Token")
-
-  tx = await diamondContract.supplyToken(tokenAddress, tokenAmount);
+  tx = await diamondContract.borrow(tokenAddress, tokenAmount);
   await tx.wait();
 
-  const allSupplies = await getterContract.getAllSupplies(deployer);
+  const allBorrows = await getterContract.getAllBorrows(deployer);
 
-  console.log("Supplied");
+  console.log("Borrowed");
 
-  const firstSupply = allSupplies[0];
+  const firstBorrow = allBorrows[0];
 
-  const daiToUsd = await getterContract.getUsdEquivalence(tokenAddress, tokenAmount)
-
-
-
-  console.log("First supply: ", firstSupply);
+  console.log("First borrow: ", firstBorrow);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

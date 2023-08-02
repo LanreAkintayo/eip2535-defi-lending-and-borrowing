@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "../interfaces/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../libraries/LibDiamond.sol";
 
@@ -22,6 +22,7 @@ contract SupplyFacet is ReentrancyGuard, Modifiers {
 
     function supplyToken(address tokenAddress, uint256 tokenAmount) external {
         IERC20 tokenContract = IERC20(tokenAddress);
+        uint8 decimals = tokenContract.decimals();
 
         // You can only supply a token that is supported
         int index = LibAppStorage._indexOf(tokenAddress, s.supportedTokens);
@@ -98,11 +99,14 @@ contract SupplyFacet is ReentrancyGuard, Modifiers {
         // This will be burnt whenever they withdraw from the token.
         IERC20 larToken = IERC20(s.larTokenAddress);
 
+        // Convert USD
+        uint256 larTokenToTransfer = (tokenAmountInUsd * 10 ** 18) /
+            10 ** decimals;
+
         require(
-            larToken.transfer(msg.sender, tokenAmountInUsd),
+            larToken.transfer(msg.sender, larTokenToTransfer),
             "Transfer failed"
         );
-
     }
 
     function switchOnCollateral(address tokenAddress) external {
@@ -141,6 +145,7 @@ contract SupplyFacet is ReentrancyGuard, Modifiers {
         // msg.sender must have supplied this token already
         SuppliedToken[] memory suppliedTokens = s.tokensSupplied[msg.sender];
         Token memory tokenDetails = s.addressToToken[tokenAddress];
+        uint8 decimals = IERC20(tokenAddress).decimals();
 
         if (suppliedTokens.length == 0) {
             revert TokenNotFound();
@@ -179,6 +184,8 @@ contract SupplyFacet is ReentrancyGuard, Modifiers {
             tokenAvailableLoanAmount,
             tokenAddress
         );
+        uint256 scaledTokenAvailableLoanAmountInUsd = ((tokenAvailableLoanAmountInUsd *
+                10 ** 18) / 10 ** decimals);
         // uint256 userTotalBorrowed = getTotalBorrowed(msg.sender);
         uint256 borrowedAmountInUsd = LibAppStorage._getUserTotalBorrowedInUsd(
             s,
@@ -193,9 +200,9 @@ contract SupplyFacet is ReentrancyGuard, Modifiers {
 
         // console.log("\n\n\n");
 
-
         if (
-            (int256(totalAvailableLoanAmountInUsd) - int256(tokenAvailableLoanAmountInUsd)) <
+            (int256(totalAvailableLoanAmountInUsd) -
+                int256(scaledTokenAvailableLoanAmountInUsd)) <
             int(borrowedAmountInUsd)
         ) {
             revert CannotSwitchOffCollateral();
@@ -242,5 +249,4 @@ contract SupplyFacet is ReentrancyGuard, Modifiers {
 
         return availableAmount;
     }
-
 }
