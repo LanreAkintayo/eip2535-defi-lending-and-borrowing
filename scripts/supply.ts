@@ -37,7 +37,7 @@ async function main() {
 
   console.log("Supplying Token")
 
-  tx = await diamondContract.supplyToken(tokenAddress, tokenAmount);
+  tx = await diamondContract.supply(tokenAddress, tokenAmount);
   await tx.wait();
 
   const allSupplies = await getterContract.getAllSupplies(deployer);

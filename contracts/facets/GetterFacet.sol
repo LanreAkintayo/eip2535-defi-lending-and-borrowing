@@ -111,4 +111,16 @@ contract GetterFacet is TriggerGetter, Modifiers {
     ) public view returns (uint256) {
         return LibAppStorage._getUsdEquivalent(s, tokenAmount, tokenAddress);
     }
+
+    function getTokenDetails(address tokenAddress) public view returns(Token memory){
+        return s.addressToToken[tokenAddress];
+    }
+
+    function getTokenTotalSupplied(address tokenAddress) public view returns(uint256){
+        return s.totalSupplied[tokenAddress];
+    }
+
+    function getTokenTotalBorrowed(address tokenAddress) public view returns(uint256){
+        return s.totalBorrowed[tokenAddress];
+    }
 }

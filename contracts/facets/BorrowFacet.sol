@@ -117,6 +117,8 @@ contract BorrowFacet is ReentrancyGuard, Modifiers {
             IERC20(tokenAddress).transfer(msg.sender, tokenAmount),
             "Transfer failed"
         );
+
+        s.totalBorrowed[tokenAddress] += tokenAmount;
     }
 
     function indexOf(

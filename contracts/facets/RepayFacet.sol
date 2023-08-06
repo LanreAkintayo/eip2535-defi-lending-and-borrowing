@@ -70,6 +70,15 @@ contract RepayFacet is ReentrancyGuard {
             .tokensBorrowed[msg.sender][uint(tokenIndex)]
                 .startAccumulatingDay = block.timestamp;
 
+            s.totalBorrowed[tokenAddress] -= tokenAmount;
+
+            if (tokenAmount >= borrowedToken.amountBorrowed){
+                // Remove the token from the list of the tokens you borrowed
+                 BorrowedToken[] storage sBorrowedToken = s.tokensBorrowed[msg.sender];
+                sBorrowedToken[uint256(tokenIndex)] = sBorrowedToken[sBorrowedToken.length - 1];
+                sBorrowedToken.pop();
+            }
+
             require(
                 IERC20(tokenAddress).transferFrom(
                     msg.sender,

@@ -4,7 +4,7 @@ pragma solidity ^0.8.17;
 import {AppStorage, SuppliedToken, LibAppStorage, Token} from "../libraries/LibAppStorage.sol";
 
 interface IDiamond {
-    function supplyToken(address tokenAddress, uint256 tokenAmount) external;
+    function supply(address tokenAddress, uint256 tokenAmount) external;
 
     function switchOnCollateral(address tokenAddress) external;
 
@@ -15,4 +15,9 @@ interface IDiamond {
     function withdraw(address tokenAddress, uint256 tokenAmount) external;
 
     function repay(address tokenAddress, uint256 tokenAmount) external;
+
+    function addToTotalSupply(
+        address tokenAddress,
+        uint256 tokenAmount
+    ) external;
 }

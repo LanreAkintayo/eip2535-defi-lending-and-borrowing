@@ -42,7 +42,7 @@ async function main() {
     diamond.target
   );
 
-  for (let i = 0; i < tokenAddresses.length - 2; i++) {
+  for (let i = 0; i < tokenAddresses.length; i++) {
     const tokenContract: IBEP20 = await ethers.getContractAt(
       "IBEP20",
       tokenAddresses[i]
@@ -54,6 +54,15 @@ async function main() {
       .connect(fundsSigner)
       .transfer(diamond.target, tokenAmount[i]);
     await tx.wait();
+
+    console.log("Adding to supply...")
+    tx = await diamondContract.addToTotalSupply(
+      tokenAddresses[i],
+      tokenAmount[i]
+    );
+    await tx.wait(1)
+    console.log("Added to supply...");
+
 
     console.log("Transferred.");
   }

@@ -6,7 +6,7 @@ import { Diamond, GetterFacet, IBEP20, IDiamond } from "../typechain-types";
 async function main() {
   let tx;
 
-  const tokenAmount = 2e6
+  const tokenAmount = 4e6
   const tokenAddress = networkConfig[network.name].usdc as string;
   const { deployer } = await getNamedAccounts();
 

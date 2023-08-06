@@ -47,6 +47,9 @@ struct AppStorage {
     mapping(address => BorrowedToken[]) tokensBorrowed;
     address[] allSuppliers;
     address[] allBorrowers;
+
+    mapping(address => uint256) totalSupplied;
+    mapping(address => uint256) totalBorrowed;
 }
 
 library LibAppStorage {

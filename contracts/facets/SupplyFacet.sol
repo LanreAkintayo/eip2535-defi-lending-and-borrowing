@@ -19,8 +19,11 @@ contract SupplyFacet is ReentrancyGuard, Modifiers {
     error AlreadyOff();
     error NotSupplier();
     error CannotSwitchOffCollateral();
+    error OnlyOwnerCanCall();
+    error AddressZero();
+    error AmountCannotBeZero();
 
-    function supplyToken(address tokenAddress, uint256 tokenAmount) external {
+    function supply(address tokenAddress, uint256 tokenAmount) external {
         IERC20 tokenContract = IERC20(tokenAddress);
         uint8 decimals = tokenContract.decimals();
 
@@ -107,6 +110,9 @@ contract SupplyFacet is ReentrancyGuard, Modifiers {
             larToken.transfer(msg.sender, larTokenToTransfer),
             "Transfer failed"
         );
+
+        // Update the total supplied
+        s.totalSupplied[tokenAddress] += tokenAmount;
     }
 
     function switchOnCollateral(address tokenAddress) external {
@@ -248,5 +254,25 @@ contract SupplyFacet is ReentrancyGuard, Modifiers {
             suppliedToken.amountSupplied) / 10000;
 
         return availableAmount;
+    }
+
+    function addToTotalSupply(
+        address tokenAddress,
+        uint256 tokenAmount
+    ) external {
+         if (msg.sender != LibDiamond.diamondStorage().contractOwner) {
+            revert OnlyOwnerCanCall();
+        }
+        
+        if (tokenAddress == address(0)) {
+            revert AddressZero();
+        }
+
+        if (tokenAmount <= 0) {
+            revert AmountCannotBeZero();
+        }
+       
+
+        s.totalSupplied[tokenAddress] += tokenAmount;
     }
 }

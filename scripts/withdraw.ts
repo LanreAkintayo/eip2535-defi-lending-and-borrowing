@@ -6,8 +6,14 @@ import { Diamond, GetterFacet, IBEP20, IDiamond } from "../typechain-types";
 async function main() {
   let tx;
 
+  const tokenAmount = 50n * 10n ** 18n;
+  const tokenAddress = networkConfig[network.name].dai as string;
   const { deployer } = await getNamedAccounts();
 
+  const tokenContract: IBEP20 = await ethers.getContractAt(
+    "IBEP20",
+    tokenAddress
+  );
   const diamond = await ethers.getContract("Diamond");
   const diamondContract: IDiamond = await ethers.getContractAt(
     "IDiamond",
@@ -21,31 +27,18 @@ async function main() {
   console.log("Diamond.target: ", diamond.target);
   console.log("Deployer: ", deployer);
 
-  console.log("Repaying Token");
+  console.log("Withdrawing Token");
 
-  // Get the amount borrowed
-  const allBorrows = await getterContract.getAllBorrows(deployer);
-  const [
-    tokenAddress,
-    borrowerAddress,
-    amountBorrowed,
-    startAccumulatingDay,
-    borrowedInterest,
-    stableRate,
-  ] = allBorrows[0];
+  tx = await diamondContract.withdraw(tokenAddress, tokenAmount);
+  await tx.wait();
 
-  // const tokenContract: IBEP20 = await ethers.getContractAt(
-  //   "IBEP20",
-  //   tokenAddress
-  //   );
-    
-  // tx = await tokenContract.approve(diamondContract.target, amountBorrowed + BigInt(5e6));
-  // await tx.wait(1);
+//   const allWithdraws = await getterContract.getAllBorrows(deployer);
 
-  // tx = await diamondContract.repay(tokenAddress, amountBorrowed);
-  // await tx.wait();
+  console.log("Withdrawn");
 
-  // console.log("Repayed Token");
+//   const firstBorrow = allBorrows[0];
+
+//   console.log("First borrow: ", firstBorrow);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
