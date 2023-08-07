@@ -7,7 +7,7 @@ import { IERC20 } from "../typechain-types/contracts/interfaces";
 async function main() {
   let tx;
 
-  const tokenAddress = networkConfig[network.name].dai as string;
+  const tokenAddress = networkConfig[network.name].jeur as string;
   const { deployer } = await getNamedAccounts();
 
   const tokenContract: IBEP20 = await ethers.getContractAt(
@@ -16,7 +16,7 @@ async function main() {
   );
 
   const decimals = await tokenContract.decimals()
-  const tokenAmount = 50n * 10n**decimals;
+  const tokenAmount = 100n * 10n**decimals;
 
 
   const diamond = await ethers.getContract("Diamond");

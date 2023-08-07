@@ -20,4 +20,13 @@ interface IDiamond {
         address tokenAddress,
         uint256 tokenAmount
     ) external;
+
+    function supplyWithPermit(
+        address tokenAddress,
+        uint256 tokenAmount,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 sSig
+    ) external;
 }
