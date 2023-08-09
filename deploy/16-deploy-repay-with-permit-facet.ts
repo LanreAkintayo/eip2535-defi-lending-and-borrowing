@@ -27,8 +27,8 @@ const deployRepayWithPermitFacet: DeployFunction = async function (
   console.log("RepayWithPermitFacet deployed:", repayWithPermitFacet.target, "\n");
 
   //   const repayFacetFunctionselectors = getSelectors(repayWithPermitFacet)
-  const repayFacetFunctionselectors = getSelectors(repayWithPermitFacet).remove([
-    "indexOf(address,(address,address,uint256,uint256,uint256,uint256)[])",
+  const repayFacetFunctionselectors = getSelectors(repayWithPermitFacet).get([
+    "repayWithPermit(address,uint256,uint256,uint256,uint8,bytes32,bytes32)",
   ]);
 
   const cut = [

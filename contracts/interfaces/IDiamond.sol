@@ -42,6 +42,7 @@ interface IDiamond {
     function repayWithPermit(
         address tokenAddress,
         uint256 tokenAmount,
+        uint256 amountApproved, 
          uint256 deadline,
         uint8 v,
         bytes32 r,

@@ -7,7 +7,7 @@ import { IERC20 } from "../typechain-types/contracts/interfaces";
 async function main() {
   let tx;
 
-  const tokenAddress = networkConfig[network.name].link as string;
+  const tokenAddress = networkConfig[network.name].usdc as string;
   const { deployer } = await getNamedAccounts();
   const deployerSigner = await ethers.getSigner(deployer);
 
@@ -18,7 +18,7 @@ async function main() {
 
   const decimals = await tokenContract.decimals();
   const name = await tokenContract.name();
-  const tokenAmount = 1n * 10n ** decimals;
+  const tokenAmount = 5n * 10n ** decimals;
 
   const diamond = await ethers.getContract("Diamond");
   const diamondContract: IDiamond = await ethers.getContractAt(
@@ -97,15 +97,15 @@ async function main() {
 
   console.log("Repaying Token");
 
-  tx = await diamondContract.repayWithPermit(
-    tokenAddress,
-    tokenAmount,
-    deadline,
-    sig.v,
-    sig.r,
-    sig.s
-  );
-  await tx.wait();
+  // tx = await diamondContract.repayWithPermit(
+  //   tokenAddress,
+  //   tokenAmount,
+  //   deadline,
+  //   sig.v,
+  //   sig.r,
+  //   sig.s
+  // );
+  // await tx.wait();
 
   console.log("Repayed Token");
   // const allSupplies = await getterContract.getAllSupplies(deployer);

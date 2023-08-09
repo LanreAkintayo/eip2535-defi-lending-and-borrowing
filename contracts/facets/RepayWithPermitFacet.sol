@@ -21,6 +21,7 @@ contract RepayWithPermitFacet is ReentrancyGuard {
     function repayWithPermit(
         address tokenAddress,
         uint256 tokenAmount,
+        uint256 amountApproved, 
          uint256 deadline,
         uint8 v,
         bytes32 r,
@@ -32,9 +33,9 @@ contract RepayWithPermitFacet is ReentrancyGuard {
         }
 
         // token has to be supported
-        int index = LibAppStorage._indexOf(tokenAddress, s.supportedTokens);
+        // int index = LibAppStorage._indexOf(tokenAddress, s.supportedTokens);
 
-        if (index == -1) {
+        if (LibAppStorage._indexOf(tokenAddress, s.supportedTokens) == -1) {
             revert UnsupportedToken();
         }
 
@@ -55,7 +56,7 @@ contract RepayWithPermitFacet is ReentrancyGuard {
             IERC20(tokenAddress).permit(
                 msg.sender,
                 address(this),
-                tokenAmount,
+                amountApproved,
                 deadline,
                 v,
                 r,

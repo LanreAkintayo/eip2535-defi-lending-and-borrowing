@@ -47,7 +47,6 @@ struct AppStorage {
     mapping(address => BorrowedToken[]) tokensBorrowed;
     address[] allSuppliers;
     address[] allBorrowers;
-
     mapping(address => uint256) totalSupplied;
     mapping(address => uint256) totalBorrowed;
 }
@@ -136,7 +135,7 @@ library LibAppStorage {
 
         // console.log("Total Collateral In Usd: ", totalCollateralInUsd);
 
-        uint256 totalBorrowedInUsd = _getUserTotalBorrowedInUsd(s, user);
+        uint256 totalBorrowedInUsd = _getUserTotalBorrowedInUsd(s, user); // 0
 
         // console.log("Total Borrowed In Usd: ", totalBorrowedInUsd);
 
@@ -175,7 +174,7 @@ library LibAppStorage {
 
             numerator += (scaledUsdAmount * tokenDetails.loanToValue);
         }
-        return numerator / userTotalCollateral;
+        return (userTotalCollateral > 0) ? numerator / userTotalCollateral : 0;
     }
 
     function _liquidationThreshold(
@@ -202,13 +201,13 @@ library LibAppStorage {
                 currentSuppliedToken.tokenAddress
             );
 
-             uint256 scaledUsdAmount = (collateralInUsd * 10 ** 18) /
+            uint256 scaledUsdAmount = (collateralInUsd * 10 ** 18) /
                 10 ** decimals;
-                
 
             numerator += (scaledUsdAmount * tokenDetails.liquidationThreshold);
         }
-        return numerator / userTotalCollateral;
+        return
+            (userTotalCollateral > 0) ? (numerator / userTotalCollateral) : 0;
     }
 
     function _healthFactor(

@@ -59,9 +59,15 @@ contract GetterFacet is TriggerGetter, Modifiers {
     }
 
     function getCurrentLTV(address user) public view returns (uint256) {
+        uint256 userTotalBorrowedInUsd = LibAppStorage
+            ._getUserTotalBorrowedInUsd(s, user) * 10000;
+        uint256 userTotalCollateralInUsd = LibAppStorage
+            ._getUserTotalCollateralInUsd(s, user);
+
         return
-            (LibAppStorage._getUserTotalBorrowedInUsd(s, user) * 10000) /
-            (LibAppStorage._getUserTotalCollateralInUsd(s, user));
+            userTotalCollateralInUsd > 0
+                ? (userTotalBorrowedInUsd / userTotalCollateralInUsd)
+                : 0;
     }
 
     function getAllSupplies(
@@ -77,14 +83,17 @@ contract GetterFacet is TriggerGetter, Modifiers {
     }
 
     function getBorrowPower(address user) public view returns (uint256) {
+        uint maxLTV = LibAppStorage._maxLTV(s, user);
+        uint256 userTotalCollateralInUsd = LibAppStorage
+            ._getUserTotalCollateralInUsd(s, user);
         return
-            (LibAppStorage._getUserTotalBorrowedInUsd(s, user) * 10000) /
-            (LibAppStorage._maxLTV(s, user) *
-                LibAppStorage._getUserTotalCollateralInUsd(s, user));
+            maxLTV > 0 && userTotalCollateralInUsd > 0
+                ? (LibAppStorage._getUserTotalBorrowedInUsd(s, user) * 10000) /
+                    (maxLTV * userTotalCollateralInUsd)
+                : 0;
     }
 
     function getAllSupportedTokens() external view returns (address[] memory) {
-
         return s.supportedTokens;
     }
 
@@ -112,15 +121,21 @@ contract GetterFacet is TriggerGetter, Modifiers {
         return LibAppStorage._getUsdEquivalent(s, tokenAmount, tokenAddress);
     }
 
-    function getTokenDetails(address tokenAddress) public view returns(Token memory){
+    function getTokenDetails(
+        address tokenAddress
+    ) public view returns (Token memory) {
         return s.addressToToken[tokenAddress];
     }
 
-    function getTokenTotalSupplied(address tokenAddress) public view returns(uint256){
+    function getTokenTotalSupplied(
+        address tokenAddress
+    ) public view returns (uint256) {
         return s.totalSupplied[tokenAddress];
     }
 
-    function getTokenTotalBorrowed(address tokenAddress) public view returns(uint256){
+    function getTokenTotalBorrowed(
+        address tokenAddress
+    ) public view returns (uint256) {
         return s.totalBorrowed[tokenAddress];
     }
 }

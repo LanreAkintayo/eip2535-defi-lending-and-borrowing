@@ -26,14 +26,15 @@ const deployGetterFacet: DeployFunction = async function (
 
   console.log("GetterFacet deployed:", getterFacet.target, "\n");
 
-  const getterFacetFunctionselectors = getSelectors(getterFacet).get(
-    ["getTokenDetails(address)"]
-  );
+  const getterFacetFunctionselectors = getSelectors(getterFacet).get([
+    "getCurrentLTV(address)",
+    "getBorrowPower(address)",
+  ]);
 
   const cut = [
     {
       facetAddress: getterFacet.target,
-      action: FacetCutAction.Add,
+      action: FacetCutAction.Replace,
       functionSelectors: getterFacetFunctionselectors,
     },
   ];
