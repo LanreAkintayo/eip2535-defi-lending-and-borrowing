@@ -49,8 +49,8 @@ const setUpContract: DeployFunction = async function (
   let receipt;
 
   // // Initialize Facet
-  tx = await initializerFacet.initializeFacet(lar.target);
-  await tx.wait();
+  // tx = await initializerFacet.initializeFacet(lar.target);
+  // await tx.wait();
 
   // set all supported tokens
   let tokens: TokenStruct[];
@@ -142,7 +142,7 @@ const setUpContract: DeployFunction = async function (
       {
         tokenAddress: networkConfig[network.name].dai,
         liquidationThreshold: toPercent(80),
-        loanToValue: toPercent(97),
+        loanToValue: toPercent(75),
         borrowStableRate: 1610,
         supplyStableRate: toPercent(10),
         liquidationPenalty: toPercent(1),
@@ -213,16 +213,16 @@ const setUpContract: DeployFunction = async function (
   await tx.wait();
 
   // set token price feeds
-  tx = await initializerFacet.setTokenPriceFeed(tokenPriceFeeds);
-  await tx.wait();
+  // tx = await initializerFacet.setTokenPriceFeed(tokenPriceFeeds);
+  // await tx.wait();
 
   const allSupportedTokens = await getterContract.getAllSupportedTokens();
 
-  //Send some LAR Token to the diamond contract
-  tx = await lar.transfer(diamond.target, toWei(400000));
-  await tx.wait();
+  // //Send some LAR Token to the diamond contract
+  // tx = await lar.transfer(diamond.target, toWei(400000));
+  // await tx.wait();
 };
 
 export default setUpContract;
 
-setUpContract.tags = ["all", "setUpContract"];
+setUpContract.tags = ["all", "setUpContract", "c"];

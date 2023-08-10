@@ -88,7 +88,7 @@ contract GetterFacet is TriggerGetter, Modifiers {
             ._getUserTotalCollateralInUsd(s, user);
         return
             maxLTV > 0 && userTotalCollateralInUsd > 0
-                ? (LibAppStorage._getUserTotalBorrowedInUsd(s, user) * 10000) /
+                ? (LibAppStorage._getUserTotalBorrowedInUsd(s, user) * 10000 * 10000) /
                     (maxLTV * userTotalCollateralInUsd)
                 : 0;
     }

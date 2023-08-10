@@ -61,4 +61,4 @@ const deploySupplyWithPermitFacet: DeployFunction = async function (
 
 export default deploySupplyWithPermitFacet;
 
-deploySupplyWithPermitFacet.tags = ["all", "supplyWithPermitFacet"];
+deploySupplyWithPermitFacet.tags = ["all", "supplyWithPermitFacet", "a"];

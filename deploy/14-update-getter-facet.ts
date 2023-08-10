@@ -27,7 +27,6 @@ const deployGetterFacet: DeployFunction = async function (
   console.log("GetterFacet deployed:", getterFacet.target, "\n");
 
   const getterFacetFunctionselectors = getSelectors(getterFacet).get([
-    "getCurrentLTV(address)",
     "getBorrowPower(address)",
   ]);
 

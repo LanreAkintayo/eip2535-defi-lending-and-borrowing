@@ -48,4 +48,8 @@ interface IDiamond {
         bytes32 r,
         bytes32 sSig
     ) external;
+
+     function getMaxAvailableToWithdrawInUsd(
+        address user
+    ) external view returns (int256);
 }

@@ -42,7 +42,7 @@ async function main() {
     diamond.target
   );
 
-  for (let i = 0; i < tokenAddresses.length; i++) {
+  for (let i = 2; i < tokenAddresses.length; i++) {
     const tokenContract: IBEP20 = await ethers.getContractAt(
       "IBEP20",
       tokenAddresses[i]

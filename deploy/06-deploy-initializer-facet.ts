@@ -26,12 +26,14 @@ const deployInitializerFacet: DeployFunction = async function (
 
   console.log("InitializerFacet deployed:", initializerFacet.target, "\n");
 
-  const initializerFacetFunctionselectors = getSelectors(initializerFacet);
+  const initializerFacetFunctionselectors = getSelectors(initializerFacet).get([
+    "setAllSupportedTokens((address,uint32,uint32,uint32,uint32,uint32)[])",
+  ]);
 
   const cut = [
     {
       facetAddress: initializerFacet.target,
-      action: FacetCutAction.Add,
+      action: FacetCutAction.Replace,
       functionSelectors: initializerFacetFunctionselectors,
     },
   ];
@@ -51,4 +53,4 @@ const deployInitializerFacet: DeployFunction = async function (
 
 export default deployInitializerFacet;
 
-deployInitializerFacet.tags = ["all", "initializerFacet"];
+deployInitializerFacet.tags = ["all", "initializerFacet", "c"];

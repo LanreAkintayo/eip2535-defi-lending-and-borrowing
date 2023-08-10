@@ -26,6 +26,8 @@ contract InitializerFacet is ReentrancyGuard {
     }
 
     function setAllSupportedTokens(Token[] memory tokens) external onlyOwner(){
+        // delete all supported tokens and then renew them
+        delete s.supportedTokens;
         
         for (uint i = 0; i < tokens.length; i++){
             Token memory currentToken = tokens[i];

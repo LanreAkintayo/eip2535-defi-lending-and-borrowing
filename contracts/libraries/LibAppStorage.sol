@@ -140,9 +140,8 @@ library LibAppStorage {
         // console.log("Total Borrowed In Usd: ", totalBorrowedInUsd);
 
         return
-            int256(
-                (maxLTV * totalCollateralInUsd) / 10000 - totalBorrowedInUsd
-            );
+            (int256(maxLTV * totalCollateralInUsd) / 10000) -
+            int256(totalBorrowedInUsd);
     }
 
     function _maxLTV(
